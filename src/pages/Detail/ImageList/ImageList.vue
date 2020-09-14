@@ -31,17 +31,24 @@ export default {
       this.$bus.$emit("changeImg", index);
     },
   },
-  mounted() {
-    new Swiper(this.$refs.imgList, {
-      // direction: 'vertical', // 垂直切换选项
-      slidesPerView: 5,
-      slidesPerGroup: 2,
-      // 如果需要前进后退按钮
-      navigation: {
-        nextEl: ".swiper-button-next",
-        prevEl: ".swiper-button-prev",
+  watch: {
+    imgList: {
+      immediate: true,
+      handler() {
+        this.$nextTick(() => {
+          new Swiper(this.$refs.imgList, {
+            // direction: 'vertical', // 垂直切换选项
+            slidesPerView: 5,
+            slidesPerGroup: 2,
+            // 如果需要前进后退按钮
+            navigation: {
+              nextEl: ".swiper-button-next",
+              prevEl: ".swiper-button-prev",
+            },
+          });
+        });
       },
-    });
+    },
   },
 };
 </script>

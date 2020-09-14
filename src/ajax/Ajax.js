@@ -12,9 +12,14 @@ const Ajax = Axios.create({
 // 添加请求拦截器
 Ajax.interceptors.request.use(function(config) {
   const userTempId = store.state.user.userTempId;
+  const token = store.state.user.userInfo.token;
+  // console.log(token);
   // 在发送请求之前做些什么
   NProgress.start();
   config.headers.userTempId = userTempId;
+  if (token) {
+    config.headers.token = token;
+  }
   return config;
 });
 

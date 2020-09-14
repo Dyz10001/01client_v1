@@ -5,15 +5,23 @@
       <div class="container">
         <div class="loginList">
           <p>尚品汇欢迎您！</p>
-          <p>
+          <p v-if="userInfo.name">
+            <a href="javascript:;">{{ userInfo.nickName }} </a>
+            <a href="javascript:;" class="register" @click="logout()">退出</a>
+          </p>
+          <p v-else>
             <span>请</span>
-            <a href="###">登录</a>
-            <a href="###" class="register">免费注册</a>
+            <!-- <a href="###">登录</a> -->
+            <router-link to="/login">登录</router-link>
+            <!-- <a href="###" class="register">免费注册</a> -->
+            <router-link class="register" to="/register">免费注册</router-link>
           </p>
         </div>
         <div class="typeList">
-          <a href="###">我的订单</a>
-          <a href="###">我的购物车</a>
+          <!-- <a href="###">我的订单</a> -->
+          <router-link to="/center">我的订单</router-link>
+          <!-- <a href="###">我的购物车</a> -->
+          <router-link to="/shopCart">我的购物车</router-link>
           <a href="###">我的尚品汇</a>
           <a href="###">尚品汇会员</a>
           <a href="###">企业采购</a>
@@ -55,6 +63,7 @@
 </template>
 
 <script>
+import { mapState } from "vuex";
 export default {
   name: "Header",
   data() {
@@ -63,6 +72,7 @@ export default {
     };
   },
   methods: {
+    //去往搜索页
     toSearch() {
       const ifHasQuery = this.$route.query.categoryName;
       const location = {
@@ -87,6 +97,21 @@ export default {
     removeKeyword() {
       this.keyword = "";
     },
+
+    //退出登录
+    async logout() {
+      try {
+        await this.$store.dispatch("getLogout");
+        this.$router.push("/home");
+      } catch (error) {
+        alert("网络错误");
+      }
+    },
+  },
+  computed: {
+    ...mapState({
+      userInfo: (state) => state.user.userInfo,
+    }),
   },
   mounted() {
     this.$bus.$on("removeKeyword", this.removeKeyword);

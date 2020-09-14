@@ -393,11 +393,17 @@ export default {
 
     //加入购物车,需要用户临时id才能找到添加成功的商品
     async addCart() {
-      const { skuId } = this.$route.query;
-      const result = await reqAddCart(skuId, this.skuNum);
-      if (result.code === 200) {
-        alert("添加购物车成功，自动前往购物车界面");
-        this.$router.push("/shopCart");
+      try {
+        const { skuId } = this.$route.query;
+        const result = await reqAddCart(skuId, this.skuNum);
+        if (result.code === 200) {
+          alert("添加购物车成功，自动前往购物车界面");
+          const userTempCartInfo = JSON.stringify(this.skuInfo);
+          sessionStorage.setItem("USERTEMPCARTINFO", userTempCartInfo);
+          this.$router.push(`/addCartSuccess?skuNum=${this.skuNum}`);
+        }
+      } catch (error) {
+        alert("网络错误" + error.message);
       }
     },
   },

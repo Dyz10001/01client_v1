@@ -5,41 +5,47 @@
       <h3>
         注册新用户
         <span class="go"
-          >我有账号，去 <a href="login.html" target="_blank">登陆</a>
+          >我有账号，去
+          <router-link to="/login">登陆</router-link>
         </span>
       </h3>
       <div class="content">
         <label>手机号:</label>
-        <input type="text" placeholder="请输入你的手机号" />
+        <input type="text" placeholder="请输入你的手机号" v-model="mobile" />
         <span class="error-msg">错误提示信息</span>
       </div>
       <div class="content">
         <label>验证码:</label>
-        <input type="text" placeholder="请输入验证码" />
+        <input type="text" placeholder="请输入验证码" v-model="code" />
         <img
           ref="code"
-          src="http://182.92.128.115/api/user/passport/code"
+          @click="undateCode()"
+          src="/api/user/passport/code"
           alt="code"
         />
         <span class="error-msg">错误提示信息</span>
       </div>
       <div class="content">
         <label>登录密码:</label>
-        <input type="text" placeholder="请输入你的登录密码" />
+        <input
+          type="text"
+          placeholder="请输入你的登录密码"
+          v-model="password"
+        />
         <span class="error-msg">错误提示信息</span>
       </div>
       <div class="content">
         <label>确认密码:</label>
-        <input type="text" placeholder="请输入确认密码" />
+        <input type="text" placeholder="请输入确认密码" v-model="password2" />
         <span class="error-msg">错误提示信息</span>
       </div>
       <div class="controls">
-        <input name="m1" type="checkbox" />
+        <input name="m1" type="checkbox" v-model="agreement" />
         <span>同意协议并注册《尚品汇用户协议》</span>
         <span class="error-msg">错误提示信息</span>
       </div>
       <div class="btn">
-        <button>完成注册</button>
+        <button @click="toRegister()">完成注册</button>
       </div>
     </div>
 
@@ -63,7 +69,38 @@
 
 <script>
 export default {
-  name: "Register"
+  name: "Register",
+  data() {
+    return {
+      mobile: "",
+      password: "",
+      password2: "",
+      code: "",
+      agreement: false,
+    };
+  },
+  methods: {
+    async toRegister() {
+      const { mobile, password, code, agreement, password2 } = this;
+      try {
+        if (mobile && password && code && agreement && password === password2) {
+          const userInfo = {
+            mobile,
+            password,
+            code,
+          };
+          await this.$store.dispatch("getReginster", userInfo);
+          alert("注册成功，自动前往登录界面");
+          this.$router.push("/login");
+        }
+      } catch (error) {
+        console.log("注册失败", error.message);
+      }
+    },
+    undateCode() {
+      this.$refs.code.src = "http://182.92.128.115/api/user/passport/code";
+    },
+  },
 };
 </script>
 

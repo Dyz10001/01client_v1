@@ -13,7 +13,12 @@
       <div class="cart-body">
         <ul class="cart-list" v-for="(cart, index) in cartList" :key="cart.id">
           <li class="cart-list-con1">
-            <input type="checkbox" name="chk_list" :checked="cart.isChecked" />
+            <input
+              type="checkbox"
+              name="chk_list"
+              :checked="cart.isChecked"
+              @click="changeSkuIsCheck($event, cart)"
+            />
           </li>
           <li class="cart-list-con2">
             <img :src="cart.imgUrl" />
@@ -21,9 +26,7 @@
               {{ cart.skuName }}
             </div>
           </li>
-          <li class="cart-list-con3">
-            <div class="item-txt">语音升级款</div>
-          </li>
+
           <li class="cart-list-con4">
             <span class="price">{{ cart.skuPrice }}</span>
           </li>
@@ -42,7 +45,9 @@
             <span class="sum">{{ cart.skuPrice * cart.skuNum }}</span>
           </li>
           <li class="cart-list-con7">
-            <a href="#none" class="sindelet">删除</a>
+            <a href="javascript:;" class="sindelet" @click="removeSku(cart)"
+              >删除</a
+            >
             <br />
             <a href="#none">移到收藏</a>
           </li>
@@ -51,11 +56,11 @@
     </div>
     <div class="cart-tool">
       <div class="select-all">
-        <input class="chooseAll" type="checkbox" />
+        <input class="chooseAll" type="checkbox" v-model="isCheckAll" />
         <span>全选</span>
       </div>
       <div class="option">
-        <a href="#none">删除选中的商品</a>
+        <a href="javascript:;" @click="removeAllSku()">删除选中的商品</a>
         <a href="#none">移到我的关注</a>
         <a href="#none">清除下柜商品</a>
       </div>
@@ -69,7 +74,8 @@
           <i class="summoney">{{ totalPrice }}</i>
         </div>
         <div class="sumbtn">
-          <a class="sum-btn" href="###" target="_blank">结算</a>
+          <!-- <a class="sum-btn" href="###" target="_blank">结算</a> -->
+          <router-link class="sum-btn" to="/trade">结算</router-link>
         </div>
       </div>
     </div>
@@ -77,12 +83,53 @@
 </template>
 
 <script>
+import { remove } from "nprogress";
 import { mapState } from "vuex";
 export default {
   name: "ShopCart",
+
   methods: {
+    //请求购物车列表
     getCartList() {
       this.$store.dispatch("getCartList");
+    },
+
+    //修改单个商品选中状态
+    async changeSkuIsCheck(e, cart) {
+      const isChecked = e.target.checked ? "1" : "0";
+      const skuId = cart.skuId;
+      try {
+        const result = await this.$store.dispatch("reqChangeIsChecked", {
+          skuId,
+          isChecked,
+        });
+        // console.log(result);
+        this.getCartList();
+      } catch (error) {
+        alert(error.message);
+      }
+    },
+
+    //删除单个商品
+    async removeSku(cart) {
+      if (confirm(`确认要删除${cart.skuName}吗`)) {
+        try {
+          await this.$store.dispatch("removeSku", cart.skuId);
+          this.getCartList();
+        } catch (error) {
+          alert("删除商品失败");
+        }
+      }
+    },
+
+    //删除全部选中的商品 reqRemoveAllSku
+    async removeAllSku() {
+      try {
+        await this.$store.dispatch("reqRemoveAllSku");
+        this.getCartList();
+      } catch (error) {
+        alert("删除商品失败");
+      }
     },
   },
   mounted() {
@@ -91,27 +138,45 @@ export default {
   computed: {
     ...mapState({
       cartList: (state) => state.shopCart.cartList || [],
-
-      //计算全部商品总价
-      totalPrice() {
-        return this.cartList.reduce((p, c) => {
-          if (c.isChecked) {
-            p += c.skuNum * c.skuPrice;
-          }
-          return p;
-        }, 0);
-      },
-
-      //计算商品总数量
-      totalSkuNum() {
-        return this.cartList.reduce((p, c) => {
-          if (c.isChecked) {
-            p += c.skuNum;
-          }
-          return p;
-        }, 0);
-      },
     }),
+
+    //计算全部商品总价
+    totalPrice() {
+      return this.cartList.reduce((p, c) => {
+        if (c.isChecked) {
+          p += c.skuNum * c.skuPrice;
+        }
+        return p;
+      }, 0);
+    },
+
+    //计算商品总数量
+    totalSkuNum() {
+      return this.cartList.reduce((p, c) => {
+        if (c.isChecked) {
+          p += c.skuNum;
+        }
+        return p;
+      }, 0);
+    },
+
+    //全选功能
+    isCheckAll: {
+      get() {
+        return (
+          this.cartList.every((cart) => cart.isChecked) &&
+          this.cartList.length !== 0
+        );
+      },
+      async set(newVal) {
+        try {
+          await this.$store.dispatch("reqIsCheckAll", newVal ? "1" : "0");
+          this.getCartList();
+        } catch (error) {
+          alert(error.message);
+        }
+      },
+    },
   },
 };
 </script>
@@ -176,11 +241,11 @@ export default {
         }
 
         .cart-list-con1 {
-          width: 4.1667%;
+          width: 15%;
         }
 
         .cart-list-con2 {
-          width: 25%;
+          width: 35%;
 
           img {
             width: 82px;
@@ -196,20 +261,12 @@ export default {
           }
         }
 
-        .cart-list-con3 {
-          width: 20.8333%;
-
-          .item-txt {
-            text-align: center;
-          }
-        }
-
         .cart-list-con4 {
-          width: 12.5%;
+          width: 10%;
         }
 
         .cart-list-con5 {
-          width: 12.5%;
+          width: 17%;
 
           .mins {
             border: 1px solid #ddd;
@@ -242,7 +299,7 @@ export default {
         }
 
         .cart-list-con6 {
-          width: 12.5%;
+          width: 10%;
 
           .sum {
             font-size: 16px;
@@ -250,7 +307,7 @@ export default {
         }
 
         .cart-list-con7 {
-          width: 12.5%;
+          width: 13%;
 
           a {
             color: #666;

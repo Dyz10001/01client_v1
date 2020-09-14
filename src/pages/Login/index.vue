@@ -14,14 +14,22 @@
           </ul>
 
           <div class="content">
-            <form action="##">
+            <form action="##" @submit.prevent="toLogin()">
               <div class="input-text clearFix">
                 <span></span>
-                <input type="text" placeholder="邮箱/用户名/手机号" />
+                <input
+                  type="text"
+                  placeholder="邮箱/用户名/手机号"
+                  v-model="mobile"
+                />
               </div>
               <div class="input-text clearFix">
                 <span class="pwd"></span>
-                <input type="text" placeholder="请输入密码" />
+                <input
+                  type="text"
+                  placeholder="请输入密码"
+                  v-model="password"
+                />
               </div>
               <div class="setting clearFix">
                 <label class="checkbox inline">
@@ -68,7 +76,28 @@
 
 <script>
 export default {
-  name: "Login"
+  name: "Login",
+  data() {
+    return {
+      mobile: "",
+      password: "",
+    };
+  },
+  methods: {
+    //登录
+    async toLogin() {
+      try {
+        const { mobile, password } = this;
+        if (mobile && password) {
+          await this.$store.dispatch("getLogin", { mobile, password });
+          alert("登陆成功，自动去往首页");
+          this.$router.push("/home");
+        }
+      } catch (error) {
+        console.log("登陆失败", error.message);
+      }
+    },
+  },
 };
 </script>
 
